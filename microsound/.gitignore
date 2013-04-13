@@ -1,0 +1,16 @@
+logs
+project/project
+project/target
+target
+tmp
+.cache
+.classpath
+.project
+.settings
+.target
+.worksheet
+.idea
+.idea_modules
+*.iml
+bin
+.history
