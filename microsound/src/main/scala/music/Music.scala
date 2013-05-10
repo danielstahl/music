@@ -20,7 +20,7 @@ object Bandwith {
 
 object NoteName extends Enumeration {
   type NoteName = Value
-  val noise1, noise2, noise3, noise4, noise5, harm1 = Value
+  val noise1, noise2, noise3, noise4, noise5, harm1, harm2, harm3, harm4, harm5 = Value
 }
 
 case class LongNote(instrument: InstrumentName, args: Seq[InstrumentArgument]) extends Playable {
@@ -28,7 +28,7 @@ case class LongNote(instrument: InstrumentName, args: Seq[InstrumentArgument]) e
   private val defaultTime: TimeArgument = TimeArgument(13f, 0.5f)
 
   def play()(implicit player: MusicPlayer) = {
-    sendNew(instrument.arguments ++ defaultBase.arguments ++ defaultTime.arguments ++ args.flatMap(_.arguments), 0)
+    player.sendNew(instrument.arguments ++ defaultBase.arguments ++ defaultTime.arguments ++ args.flatMap(_.arguments), 0)
   }
 }
 
@@ -79,9 +79,9 @@ object Music {
       
     noise2 -> LongNote(InvertedSpektrum6(), Seq(
       FrequenciesArgument(
-        harmony(HARMON).octave(3).chord(0, 1, 2, 3, 4, 5),
-        harmony(HARMON).octave(3).chord(0, 1, 2, 3, 4, 5)),
-      BandwithsArgument(Bandwith(0, 0, 0, 0, 0, 0), Bandwith(0, 0, 0, 0, 0, 0)),
+        harmony(HARMON).octave(5).chord(0, 1, 2, 3, 4, 5),
+        harmony(HARMON).octave(5).chord(0, 1, 2, 3, 4, 5)),
+      BandwithsArgument(Bandwith(2, 2, 2, 2, 2, 2), Bandwith(2, 2, 2, 2, 2, 2)),
       AttackArgument(0, 0))),
       
     // Isnt working  
@@ -94,12 +94,11 @@ object Music {
     
     noise4 -> LongNote(InvertedSpektrum6(), Seq(
       FrequenciesArgument(
-        harmony(HARMON).octave(0).chord(0,6,8,10,12,19),
-        harmony(HARMON).octave(0).chord(0,6,8,10,12,19)
+        harmony(HARMON).octave(5).chord(0,6,8,10,12,19),
+        harmony(HARMON).octave(5).chord(0,6,8,10,12,19)
       ),
       BandwithsArgument(Bandwith(5,5,5,5,5,5), Bandwith(5,5,5,5,5,5)),
       AttackArgument(0,0))),
-   // Isnt working
    noise5 -> LongNote(InvertedSpektrum6(), Seq(
      FrequenciesArgument(
        harmony(HARMON).octave(6).chord(0,6,8,10,12,19),
@@ -109,9 +108,37 @@ object Music {
     
     harm1 -> LongNote(Spektrum(), Seq(
       FrequenciesArgument(
-        harmony(HARMON).octave(2).chord(1,7,15,18),
-        harmony(HARMON).octave(2).chord(1,6,17,19)),
+        harmony(HARMON).octave(6).chord(1,7,15,18),
+        harmony(HARMON).octave(6).chord(1,6,17,19)),
       BandwithsArgument(Bandwith(1,1,1,1), Bandwith(3,3,3,3)),
-      AttackArgument(0,0))) 
+      AttackArgument(0,0))),
+      
+    harm2 -> LongNote(Spektrum(), Seq(
+      FrequenciesArgument(
+        harmony(HARMON).octave(4).chord(1,5,10,12),
+        harmony(HARMON).octave(4).chord(1,3,11,18)),
+      BandwithsArgument(Bandwith(1,1,1,1), Bandwith(3,3,3,3)),
+      AttackArgument(0,0))),
+      
+    harm3 -> LongNote(Spektrum(), Seq(
+      FrequenciesArgument(
+        harmony(HARMON).octave(8).chord(1,2,3,4),
+        harmony(HARMON).octave(8).chord(0,3,5,7)),
+      BandwithsArgument(Bandwith(2,2,2,2), Bandwith(3,3,3,3)),
+      AttackArgument(0,0))),
+      
+    harm4 -> LongNote(Spektrum(), Seq(
+      FrequenciesArgument(
+        harmony(HARMON).octave(9).chord(0,3,5,7),
+        harmony(HARMON).octave(9).chord(1,2,3,4)),
+      BandwithsArgument(Bandwith(2,2,2,2), Bandwith(1,1,1,1)),
+      AttackArgument(0,0))),
+      
+    harm5 -> LongNote(Spektrum(), Seq(
+      FrequenciesArgument(
+        harmony(HARMON).octave(3).chord(0,7,15,19),
+        harmony(HARMON).octave(3).chord(1,6,8,9)),
+      BandwithsArgument(Bandwith(1,1,1,1), Bandwith(3,3,3,3)),   
+      AttackArgument(0,0)))
   )
 }
