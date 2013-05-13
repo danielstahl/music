@@ -1,7 +1,6 @@
 package music
 
 object Common {
-
   val phi: Float = (1 + Math.sqrt(5).asInstanceOf[Float]) / 2
   
   val invPhi: Float = 1 / phi

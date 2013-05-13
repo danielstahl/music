@@ -10,9 +10,12 @@ case class Octave(spectrums: Seq[Spectrum]) {
   }
 }
 
+
 object SpectrumName extends Enumeration {
+  type SpectrumName = Value
   val PHI, INVERTED_PHI, HARMON = Value
 }
+
 
 case class Spectrum(spekt: Seq[Float]) extends Plottable {
   def chord(indices: Int*): Seq[Float] = {
@@ -79,10 +82,12 @@ object Harmony {
   def spect(serie: SpectrumName.Value, octave: Int): Spectrum = {
     harmony(serie).octave(octave)
   }
-    
-  val harmony: Map[SpectrumName.Value, Octave] =
+   
+  private val harmony: Map[SpectrumName, Octave] =
     Map(
       HARMON -> Octave(makeSerie(2).map(oct => makeSpectrum(oct, 1))),
       PHI -> Octave(makeSerie(2 * phi).map(oct => makeSpectrum(oct, phi))),
       INVERTED_PHI -> Octave(makeSerie(2 * invPhi).map(oct => makeSpectrum(oct, invPhi))))
+      
+  def apply(spectrumName: SpectrumName): Octave = harmony(spectrumName)
 }

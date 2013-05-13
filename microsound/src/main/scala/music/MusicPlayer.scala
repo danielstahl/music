@@ -7,8 +7,7 @@ import com.illposed.osc.OSCPacket
 import com.illposed.osc.OSCBundle
 import java.util.Date
 
-case class MusicPlayer() {
-  
+case class MusicPlayer() {  
   val sender: OSCPortOut = new OSCPortOut(InetAddress.getLocalHost(), 57110)
 
   val clock: PlayerClock = PlayerClock()
@@ -17,11 +16,6 @@ case class MusicPlayer() {
     clock.reset()
     playable.play()(this)
   }
-
-  //def play(f: MusicPlayer => Unit) = {
-  //  clock.reset()
-  //  f(this)
-  //}
   
   def sendNew(arguments: Seq[Object], deltaTime: Long)(implicit player: MusicPlayer) = {
     val theMessages: Array[Object] = arguments.toArray

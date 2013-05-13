@@ -12,16 +12,37 @@ import java.awt.Graphics2D
  * 7.0299797, 8.092226, 9.154471, 10.216718, 11.278963
  */
 
+
 object PulseChordName extends Enumeration {
+  type PulseChordName = Value
   val PHI, IPHI, HARM = Value
 }
 
-object Time {
+object AttackType extends Enumeration {
+  type AttackType = Value
+  val SHARP_INVPHI, HALF, SOFT_INVPHI = Value
+}
+
+case class PulseChord(values: Seq[Float]) {
+  def vals(indices: Int*): Seq[Float] = {
+    indices.map(values(_))
+  }
+}
+
+object Pulse {
   import PulseChordName._
   import NoteName._
   import Common._
-
-  val pulseChords: Map[PulseChordName.Value, PulseChord] =
+  import AttackType._
+  
+  val attackTypes: Map[AttackType, Float] = 
+    Map(
+      SHARP_INVPHI -> (1 - invPhi),
+      HALF -> 0.5f,
+      SOFT_INVPHI -> invPhi
+    )
+  
+  val pulseChords: Map[PulseChordName, PulseChord] =
     Map(
       HARM -> PulseChord(harm(SpectrumName.HARMON, 0, 3, 4, 5, 6, 7)),
       PHI -> PulseChord(harm(SpectrumName.PHI, 0, 1, 2, 3, 4, 5)),
@@ -31,20 +52,20 @@ object Time {
     SimplePulse(bases, notes, pans)
   }
 
-  def base(name: PulseChordName.Value, bases: (Int, Int, Float)*): Seq[PulseTime] = {
+  def base(name: PulseChordName.Value, bases: (Int, Int, AttackType)*): Seq[PulseTime] = {
     val chord = pulseChords(name)
     bases.map {
-      base => PulseTime(chord.values(base._1), TimeArgument(chord.values(base._2), base._3))
+      base => PulseTime(chord.values(base._1), TimeArgument(chord.values(base._2), attackTypes(base._3)))
     }
   }
 
-  def note(names: NoteName.Value*): Seq[LongNote] = {
+  def note(names: NoteName*): Seq[LongNote] = {
     names.map {
-      noteName => Music.longNotes(noteName)
+      noteName => LongNote(noteName)
     }
   }
 
-  def pan(pans: (Int, Int)*): Seq[PanArgument] = {
+  def pan(pans: (Float, Float)*): Seq[PanArgument] = {
     pans.map {
       pan => PanArgument(pan._1, pan._2)
     }
@@ -58,37 +79,35 @@ object Time {
     SequencialPulse(pulses)
   }
 
-  val pulse: Pulse =
+  private val pulse: Pulse =
     sequencialPulse(
-      simplePulse(base(HARM, (2, 2, invPhi), (2, 2, invPhi), (2, 2, invPhi)),
-        note(noise1, noise2, noise1),
-        pan((-1, 1), (-1, 1), (-1, 1))),
+      simplePulse(base(HARM, (2, 2, SOFT_INVPHI), (2, 2, SHARP_INVPHI), (2, 2, SOFT_INVPHI)),
+        note(noise1, noise4, noise1),
+        pan((-1f, -0.6f), (0.5f, -0.2f), (0.2f, -0.5f))),
       parallelPulse(
-        simplePulse(base(HARM, (1, 1, invPhi), (0, 0, invPhi), (1, 1, invPhi), (0, 0, invPhi), (0, 0, invPhi)),
+        simplePulse(base(HARM, (1, 1, SHARP_INVPHI), (0, 0, SHARP_INVPHI), (1, 1, SHARP_INVPHI), (0, 0, SHARP_INVPHI), (0, 0, SHARP_INVPHI)),
           note(noise1, noise1, noise1, noise1, noise1),
-          pan((-1, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 0))),
-        simplePulse(base(HARM, (0, 0, invPhi), (0, 0, invPhi), (1, 1, invPhi), (0, 0, invPhi), (1, 1, invPhi)),
-          note(noise2, noise2, noise2, noise2, noise2),
-          pan((-1, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 0)))),
+          pan((0, 0.2f), (0.2f, 0.4f), (0.4f, 0.6f), (0.6f, 0.8f), (0.8f, 1f))),
+        simplePulse(base(HARM, (0, 0, SOFT_INVPHI), (0, 0, SOFT_INVPHI), (1, 1, SOFT_INVPHI), (0, 0, SOFT_INVPHI), (1, 1, SOFT_INVPHI)),
+          note(noise4, noise4, noise4, noise4, noise4),
+          pan((0, -0.2f), (-0.2f, -0.4f), (-0.4f, -0.6f), (-0.6f, -0.8f), (-0.8f, -1)))),
 
-      simplePulse(base(HARM, (1, 1, invPhi), (1, 1, invPhi), (1, 1, invPhi)),
-        note(noise2, noise1, noise2),
-        pan((-1, 0), (-1, 0), (-1, 0))))
+      simplePulse(base(HARM, (1, 1, SHARP_INVPHI), (1, 1, SOFT_INVPHI), (1, 1, SHARP_INVPHI)),
+        note(noise4, noise1, noise4),
+        pan((1f, 0.6f), (-0.5f, 0.2f), (-0.2f, 0.5f))))
 
+   def apply(): Pulse = pulse     
 }
 
-case class PulseTime(delta: Float, time: TimeArgument) {
-
-}
+case class PulseTime(delta: Float, time: TimeArgument)
 
 trait Pulse extends Plottable with Playable {
-  
   def play()(implicit player: MusicPlayer) = {
-	  internalPlay(0)
+    internalPlay(0)
   }
-  
-  def internalPlay(absoluteTime: Float)(implicit player: MusicPlayer) 
-  
+
+  def internalPlay(absoluteTime: Float)(implicit player: MusicPlayer)
+
   def plot(g: Graphics2D) {
     internalPlot(0, 0, g)
   }
@@ -103,24 +122,23 @@ trait Pulse extends Plottable with Playable {
 }
 
 case class SimplePulse(bases: Seq[PulseTime], notes: Seq[LongNote], pans: Seq[PanArgument]) extends Pulse {
-	private val defaultBase: BaseArgument = BaseArgument()
-	
+  private val defaultBase: BaseArgument = BaseArgument()
+
   def internalPlay(absoluteTime: Float)(implicit player: MusicPlayer) = {
-	  
-	  var tempTime = absoluteTime
-	  (bases, notes, pans).zipped.foreach {
-	    (baseValue, noteValue, panValue) =>
-	      println("note at " + (tempTime * 1000).round.toLong + " with duration " + baseValue.time.dur)
-	      player.sendNew(noteValue.instrument.arguments ++ 
-	          defaultBase.arguments ++ 
-	          baseValue.time.arguments ++
-	          panValue.arguments ++
-	          noteValue.args.flatMap(_.arguments), (tempTime * 1000).round.toLong)
-	      
-	      tempTime = tempTime + baseValue.delta
-	  }
+
+    var tempTime = absoluteTime
+    (bases, notes, pans).zipped.foreach {
+      (baseValue, noteValue, panValue) =>
+        player.sendNew(noteValue.instrument.arguments ++
+          defaultBase.arguments ++
+          baseValue.time.arguments ++
+          panValue.arguments ++
+          noteValue.args.flatMap(_.arguments), (tempTime * 1000).round.toLong)
+
+        tempTime = tempTime + baseValue.delta
+    }
   }
-  
+
   def xpos(xtime: Float): Int = (10 + (xtime * 10).round).toInt
 
   def internalPlot(absoluteTime: Float, track: Int, g: Graphics2D) {
@@ -130,7 +148,6 @@ case class SimplePulse(bases: Seq[PulseTime], notes: Seq[LongNote], pans: Seq[Pa
       baseValue =>
         val x = xpos(tempTime)
         g.drawLine(x, ypos, x, ypos + 10)
-
         g.drawLine(x, ypos + 10, xpos(tempTime + (baseValue.time.dur * baseValue.time.attack)), ypos)
         g.drawLine(xpos(tempTime + (baseValue.time.dur * baseValue.time.attack)), ypos, xpos(tempTime + baseValue.time.dur), ypos + 10)
         g.drawString(format(tempTime) + " (" + format(baseValue.delta) + ")", x + 10, ypos)
@@ -142,7 +159,6 @@ case class SimplePulse(bases: Seq[PulseTime], notes: Seq[LongNote], pans: Seq[Pa
 }
 
 case class SequencialPulse(pulses: Seq[Pulse]) extends Pulse {
- 
   def internalPlay(absoluteTime: Float)(implicit player: MusicPlayer) = {
     var temp = absoluteTime
     pulses.foreach {
@@ -151,7 +167,7 @@ case class SequencialPulse(pulses: Seq[Pulse]) extends Pulse {
         temp += pulse.length
     }
   }
-  
+
   def internalPlot(absolutTime: Float, track: Int, g: Graphics2D) {
     var temp = absolutTime
     pulses.foreach {
@@ -166,14 +182,13 @@ case class SequencialPulse(pulses: Seq[Pulse]) extends Pulse {
 }
 
 case class ParallelPulse(pulses: Seq[Pulse]) extends Pulse {
-  
   def internalPlay(absoluteTime: Float)(implicit player: MusicPlayer) = {
-	pulses.foreach {
+    pulses.foreach {
       pulse =>
         pulse.internalPlay(absoluteTime)
     }
   }
-  
+
   def internalPlot(absolutTime: Float, track: Int, g: Graphics2D) {
     var tempTrack = track
     pulses.foreach {
@@ -185,10 +200,3 @@ case class ParallelPulse(pulses: Seq[Pulse]) extends Pulse {
 
   def length: Float = pulses.map(_.length).max
 }
-
-case class PulseChord(values: Seq[Float]) {
-  def vals(indices: Int*): Seq[Float] = {
-    indices.map(values(_))
-  }
-}
-
