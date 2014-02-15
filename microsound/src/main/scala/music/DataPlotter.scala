@@ -10,18 +10,16 @@ class PlottableComponent extends Component {
 	
 	override def paintComponent(g: Graphics2D) {
 	  plottable match {
-	    case p => {
-	      g.setFont(new Font("Arial", Font.PLAIN, 9));
-	      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-	      p.get.plot(g)	      
-	    }
+	    case p =>
+	      g.setFont(new Font("Arial", Font.PLAIN, 9))
+	      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+	      p.get.plot(g)
 	  }	  
 	}
 	
 	reactions += {
-	  case e: PlottableEvent => {
+	  case e: PlottableEvent =>
 	    plottable = Option(e.plottable)
-	  }
 	}
 }
 
@@ -29,11 +27,11 @@ class PlotterFrame(gc: java.awt.GraphicsConfiguration = null) extends Frame(gc) 
   override def closeOperation() { this.visible = false }
 }
 
-case class DataPlotter extends Reactor {  
+case class DataPlotter() extends Reactor {
 	var top: PlotterFrame = setupGui
 	val publisher: Publisher = PlottablePublisher()
 	
-	def setupGui(): PlotterFrame = {
+	def setupGui: PlotterFrame = {
 		Swing.onEDT {
 			top = new PlotterFrame {
 			  title = "Dataplotter"
@@ -72,7 +70,7 @@ case class DataPlotter extends Reactor {
 case class PlottableEvent(plottable: Plottable) extends Event {
 }
 
-case class PlottablePublisher extends Publisher {
+case class PlottablePublisher() extends Publisher {
   
 }
 
