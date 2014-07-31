@@ -24,7 +24,9 @@ class PlottableComponent extends Component {
 }
 
 class PlotterFrame(gc: java.awt.GraphicsConfiguration = null) extends Frame(gc) {
-  override def closeOperation() { this.visible = false }
+  override def closeOperation() {
+    this.visible = false
+  }
 }
 
 case class DataPlotter() extends Reactor {
@@ -53,6 +55,14 @@ case class DataPlotter() extends Reactor {
 		}
 	}
 
+  def plot(plotter: (Graphics2D) => Unit) {
+    plot(
+      new Plottable {
+        override def plot(g: Graphics2D): Unit = plotter(g)
+      }
+    )
+  }
+
 	def makeScrollPane(component: Component): ScrollPane = {
 	  new ScrollPane(component) {
 	    horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
@@ -61,18 +71,15 @@ case class DataPlotter() extends Reactor {
 	
 	def makeComponent(publisher: Publisher): PlottableComponent = {
 	  new PlottableComponent {
-	    preferredSize = new Dimension(1200, 800)
+	    preferredSize = new Dimension(7000, 1000)
 	    listenTo(publisher)
 	  }
 	}
 }
 
-case class PlottableEvent(plottable: Plottable) extends Event {
-}
+case class PlottableEvent(plottable: Plottable) extends Event
 
-case class PlottablePublisher() extends Publisher {
-  
-}
+case class PlottablePublisher() extends Publisher
 
 
 trait Plottable {

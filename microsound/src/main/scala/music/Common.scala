@@ -7,15 +7,14 @@ object Common {
   
   
   def makeSerie(start: Float, fakt: Float, size: Int): Seq[Float] = {
-	  var temp:Float = start
-	  (0 until size).map(i => {
-	    i match {
-	      case 0 => start
-	      case _ =>
-	        temp = temp * fakt
-	        temp
-	    }	  
-	  })		  
+	  var temp = start
+
+    (0 until size).map {
+      case 0 => start
+      case _ =>
+        temp = temp * fakt
+        temp
+    }
   }
   
 

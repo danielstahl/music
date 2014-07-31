@@ -8,16 +8,24 @@ import com.illposed.osc.OSCBundle
 import java.util.Date
 import com.illposed.osc
 
-case class MusicPlayer() {  
+case class MusicPlayer() {
   val sender: OSCPortOut = new OSCPortOut(InetAddress.getLocalHost(), 57110)
 
   val clock: PlayerClock = PlayerClock()
 
-  def play(playable: Playable) = {
+  def play(playable: Playable): Unit = {
     clock.reset()
     playable.play()(this)
   }
-  
+
+  def play(playable: (MusicPlayer) => Unit): Unit = {
+    play(
+      new Playable {
+        override def play()(implicit player: MusicPlayer): Unit = playable(player)
+      }
+    )
+  }
+
   def sendNew(arguments: Seq[Object], deltaTime: Long)(implicit player: MusicPlayer) = {
     //println(s"Sending message at $deltaTime with args $arguments")
     val theMessages: Array[Object] = arguments.toArray
@@ -59,12 +67,10 @@ case class MusicPlayer() {
 case class PlayerClock() {
   val DELAY: Long = 1000
   var start: Long = System.currentTimeMillis() + DELAY
-  
-  def reset() = {
-    start = System.currentTimeMillis() + DELAY
-  }
+
+  def reset() = start = System.currentTimeMillis() + DELAY
 }
 
 trait Playable {
-  def play()(implicit player: MusicPlayer) 
+  def play()(implicit player: MusicPlayer)
 }

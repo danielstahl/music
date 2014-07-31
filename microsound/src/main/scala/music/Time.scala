@@ -25,10 +25,13 @@ object SOFT_INVPHI extends AttackType(invPhi)
 sealed case class PulseChord(values: Seq[Float])
 
 object HARM_CHORD extends PulseChord(harm(SpectrumName.HARMON, 0, 3, 4, 5, 6, 7))
-
 object PHI_CHORD extends PulseChord(harm(SpectrumName.PHI, 0, 1, 2, 3, 4, 5))
-
 object IPHI_CHORD extends PulseChord(harm(SpectrumName.INVERTED_PHI, 0, 5, 6, 7, 8, 9))
+
+object SHORT_HARM_CHORD extends PulseChord(harm(SpectrumName.HARMON, 0, 0, 1, 2))
+object SHORT_PHI_CHORD extends PulseChord(harm(SpectrumName.PHI, 0, 0, 1, 2))
+object SHORT_IPHI_CHORD extends PulseChord(harm(SpectrumName.INVERTED_PHI, 0, 0, 1, 2, 3, 4))
+
 
 object Pulse {
 
@@ -73,7 +76,23 @@ object Pulse {
     SequencialPulse(pulses)
   }
 
-  private val pulse: Pulse =
+  private val pulse = pulse2
+  // noise2 low, noise3 middle, noise1 high
+  // 2 2 SHARP_INVPHI, 1 1 SHARP_INVPHI
+
+  private val pulse2: Pulse =
+    parallelPulse(                  //13.75
+      simplePulse(base(HARM_CHORD, (4, 4, SOFT_INVPHI), (4, 4, SOFT_INVPHI), (4, 4, SOFT_INVPHI), (4, 4, SOFT_INVPHI), (4, 4, SOFT_INVPHI), (4, 4, SOFT_INVPHI), (4, 4, SOFT_INVPHI)),
+        note(noise2, noise2, noise2, noise2, noise2, noise2, noise2),
+        pan((-3f, -2f), (-2f, -1f), (-1f, 0f), (0f, -1), (-1f, -2), (-2f, -3f), (-3f, -3f)),
+        parts()),                  //12.03125
+      simplePulse(base(HARM_CHORD, (3, 3, HALF), (3, 3, HALF), (3, 3, HALF), (3, 3, HALF), (3, 3, HALF), (3, 3, HALF), (3, 3, HALF)),
+        note(noise3, noise3, noise3, noise3, noise3, noise3, noise3),
+        pan((3f, 2f), (2f, 1f), (1f, 0f), (0f, 1), (1f, 2), (2f, 3f), (3f, 3f)),
+        parts()))
+
+
+  private val pulse1: Pulse =
     sequencialPulse(
       simplePulse(base(HARM_CHORD, (2, 2, SOFT_INVPHI), (2, 2, SHARP_INVPHI), (2, 2, SOFT_INVPHI)),
         note(noise1, noise4, noise1),
@@ -99,7 +118,7 @@ object Pulse {
         pan((1f, 0.6f), (-0.5f, 0.2f), (-0.2f, 0.5f)),
         parts(p((1, SHARP_PATTERN1)), p((1, SHARPER_PATTERN1)), p((1, INV_SOFT_PATTERN1)))))
 
-  def apply(): Pulse = pulse
+  def apply(): Pulse = pulse2
 }
 
 case class PulseTime(delta: Float, time: TimeArgument)
@@ -132,7 +151,7 @@ case class SimplePulse(bases: Seq[PulseTime], notes: Seq[LongNote], pans: Seq[Pa
   import GroupName._
 
   def internalPlay(absoluteTime: Float, track: Int)(implicit player: MusicPlayer, layers: Layers) = {
-    internalPlay2(absoluteTime, track)
+    internalPlay1(absoluteTime, track)
   }
 
   def internalPlay2(absoluteTime: Float, track: Int)(implicit player: MusicPlayer, layers: Layers) = {
